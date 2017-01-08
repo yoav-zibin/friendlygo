@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!-- build:[manifest] index.min.appcache -->
+<html lang="en" ng-app="myApp" ng-strict-di>
+<!-- /build -->
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>weiqi</title>
+    <link rel="shortcut icon" type="image/x-icon" href="data:image/x-icon;,">
+    <!-- Suppress browser request for favicon.ico -->
+
+    <!-- To ensure CSS files are downloaded in parallel, always include external CSS before external JavaScript. -->
+    <!-- build:[href] everything.min.css -->
+    <link rel="stylesheet" type="text/css" href="game.css">
+    <!-- /build -->
+
+    <!-- build:js js/everything.min.js -->
+    <script src="lib/angular.js"></script>
+    <script src="lib/turnBasedServices.4.js"></script>
+    <script src="ts_output_readonly_do_NOT_change_manually/src/gameLogic.js"></script>
+    <script src="ts_output_readonly_do_NOT_change_manually/src/game.js"></script>
+    <!-- /build -->
+</head>
+
+<body ng-cloak class="ng-scope">
+  <div class="overlayModal oneOpacity" ng-click="game.clickedOnModal($event)" 
+        ng-hide="!game.isModalShown"
+        ng-class="{zeroOpacity: !game.isModalShown, oneOpacity: game.isModalShown}" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">
+            {{game.modalTitle}}
+          </h4>
+        </div>
+        <div class="modal-body">
+            {{game.modalBody}}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-primary" ng-click="game.isModalShown = false">
+            {{'MODAL_BUTTON_CLOSE' | translate}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div id="gameArea">
+        <div ng-if="!game.hasDim">
+            <div ng-if="game.isHumanTurn()">
+                <div class="text">{{'CHOOSE_BOARD_SIZE' | translate}}</div>
+                <div ng-repeat="d in [9,13,19]">
+                    <button type="button" ng-click="game.setDim(d)" style="width: {{80*d/19}}%;" class="text selectSize">{{d}}x{{d}}</button>
+                </div>
+            </div>
+            <div class="text" ng-if="!game.isHumanTurn()">
+                {{'OPPONENT_CHOOSE_BOARD_SIZE' | translate}}
+            </div>
+        </div>
+        <div ng-show="game.hasDim" style="font-size: {{game.fontSizePx()}}px;">
+            <div id="boardArea" ng-class="game.hidePassButton ? 'hidePassButton' : ''">
+                <svg id="draggingLines" width="100%" height="100%" style="display:none; position:absolute; z-index: 30;">
+                    <line id="horizontalDraggingLine" x1="0" y1="0%" x2="100%" y2="0%" stroke="green" stroke-width="1%" />
+                    <line id="verticalDraggingLine" y1="0" x1="0%" y2="100%" x2="0%" stroke="green" stroke-width="1%" />
+                </svg>
+
+                <img id="clickToDragPiece"
+                    style="display:none; position:absolute; z-index: 31; width: {{100 / game.dim}}%; height: {{100 / game.dim}}%;"
+                    src="imgs/whiteStone.svg">
+                </svg>
+
+                <div style="width: 100%; height: {{100/game.dim/2}}%; top:100%; left:0; position:absolute;">
+                    <div ng-repeat="i in game.getIntegersTill(game.dim)"
+                         class="text inheritFontSize"
+                         style="width: {{100/game.dim}}%; height: 100%; top:0; left:{{i*100/game.dim}}%; position:absolute;">
+                         {{game.indexToLetter(i)}}
+                    </div>
+                </div>
+                <div style="width: 100%; height: {{100/game.dim/2}}%; top:-{{100/game.dim/2}}%; left:0; position:absolute;">
+                    <div ng-repeat="i in game.getIntegersTill(game.dim)"
+                         class="text inheritFontSize"
+                         style="width: {{100/game.dim}}%; bottom:0; left:{{i*100/game.dim}}%; position:absolute;">
+                         {{game.indexToLetter(i)}}
+                    </div>
+                </div>
+                <div style="height: 100%; width: {{100/game.dim/1.5}}%; top:0; left:-{{100/game.dim/1.5}}%; position:absolute;">
+                    <div ng-repeat="i in game.getIntegersTill(game.dim)"
+                         class="text inheritFontSize"
+                         style="direction: rtl; display: flex; align-items: center; height: {{100/game.dim}}%; line-height: {{100/game.dim}}%;width: 100%; left:0; top:{{i*100/game.dim}}%; position:absolute;">
+                         {{game.indexToNumber(i)}}
+                    </div>
+                </div>  
+                <div style="height: 100%; width: {{100/game.dim/1.5}}%; top:0; right:-{{100/game.dim/1.5}}%; position:absolute;">
+                    <div ng-repeat="i in game.getIntegersTill(game.dim)"
+                         class="text inheritFontSize"
+                         style="display: flex; align-items: center; height: {{100/game.dim}}%; line-height: {{100/game.dim}}%;width: 100%; left:0; top:{{i*100/game.dim}}%; position:absolute;">
+                         {{game.indexToNumber(i)}}
+                    </div>
+                </div>   
+                    
+                <svg width="100%" height="100%" style="position:absolute; margin:auto;">
+                    <line ng-repeat="i in game.getIntegersTill(game.dim)"
+                        ng-attr-x1="{{game.rowsPercent()/2}}%" 
+                        ng-attr-y1="{{-game.rowsPercent()/2 + (game.rowsPercent())*(i+1)}}%" 
+                        ng-attr-x2="{{100-game.rowsPercent()/2}}%" 
+                        ng-attr-y2="{{-game.rowsPercent()/2 + (game.rowsPercent())*(i+1)}}%" stroke="black" stroke-width="0.1%" />
+                    <line ng-repeat="i in game.getIntegersTill(game.dim)"
+                        ng-attr-y1="{{game.rowsPercent()/2}}%" 
+                        ng-attr-x1="{{-game.rowsPercent()/2 + (game.rowsPercent())*(i+1)}}%" 
+                        ng-attr-y2="{{100-game.rowsPercent()/2}}%" 
+                        ng-attr-x2="{{-game.rowsPercent()/2 + (game.rowsPercent())*(i+1)}}%" stroke="black" stroke-width="0.1%" />
+                    <line ng-repeat="m in game.getMatrixTill(3)"
+                        ng-attr-y1="{{game.dotX(m[1])}}%"
+                        ng-attr-x1="{{-0.5+game.dotX(m[0])}}%"
+                        ng-attr-y2="{{game.dotX(m[1])}}%"
+                        ng-attr-x2="{{0.5+game.dotX(m[0])}}%" stroke="black" stroke-width="1%" />
+                </svg>
+                <div ng-repeat="row in game.getIntegersTill(game.dim)" style="position:absolute; top:{{row * 100 / game.dim}}%; left:0; width:100%; height:{{100 / game.dim}}%;">
+                    <div ng-repeat="col in game.getIntegersTill(game.dim)" style="position:absolute; top:0; left:{{col * 100 / game.dim}}%; width:{{100 / game.dim}}%; height:100%;"
+                        id="{{'board' + row + 'x' + col}}"
+                        ng-class="{slowlyDrop: game.shouldSlowlyDrop(row, col), explodePiece: game.shouldExplode(row, col), isDead: game.isDead(row, col), isProposal1: game.isProposal1(row, col), isProposal2: game.isProposal2(row, col)}">
+                        <img class="boardStone"
+                            ng-src="imgs/{{game.getBoardPiece(row, col) == 'B' ? 'black' : 'white'}}Stone.svg"
+                            ng-if="game.getBoardPiece(row, col)">
+                        <svg ng-if="game.shouldSlowlyDrop(row, col)" style="position:absolute; top:0; left:0; width: 100%; height: 100%;" width="100%" height="100%">
+                            <circle cx="50%" cy="50%" r="27%"
+                                ng-attr-stroke="{{game.board[row][col] == 'B' ? 'white' : 'black'}}" stroke-width="5%" fill="none" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            <div class="buttonArea" ng-hide="game.hidePassButton">
+                <button type="button"
+                    ng-hide="game.shouldHidePassButton()" 
+                    ng-click="game.passClicked()" 
+                    class="{{game.getPassBtnClasses()}}"
+                    ng-disabled="!game.isPassBtnEnabled()">{{ game.getButtonValue() }}</button>
+                <button type="button"
+                    ng-show="game.showConfirmButton()" 
+                    ng-click="game.confirmClicked()" 
+                    class="text confirmBtn">{{'CONFIRM' | translate}}</button>
+
+                <button type="button"
+                    ng-show="game.showContinuePlayingOrAgreeButtons()" 
+                    ng-click="game.continuePlayingClicked()" 
+                    class="text passBtn continuePlayingBtn">{{'CONTINUE_PLAYING' | translate}}</button>
+                <button type="button"
+                    ng-show="game.showContinuePlayingOrAgreeButtons()" 
+                    ng-click="game.agreeClicked()" 
+                    class="text confirmBtn">{{'AGREE' | translate}}</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="stylesheet" type="text/css" href="game.css">
+
+  <!--
+    Loading code to resize gameArea according to some chosen width-to-height ratio.
+    In TicTacToe, the ratio is 1 (i.e., width/height = 1)
+  -->
+  <script src="lib/angular.js"></script>
+  <script src="lib/turnBasedServices.4.js"></script>
+  <script>
+    var game = {};
+    var dim = 9; // 9, 13, 19
+    game.dim = dim;
+    function rowsPercent() {
+      return 100/dim;
+    }
+    game.rowsPercent = rowsPercent;
+    function dotX(m) {
+      return -rowsPercent()/2 + (rowsPercent())*((dim == 9 ? 2 : 3) +
+          (dim == 19 ? 6 : dim == 13 ? 3 : 2)*m+1);
+    }
+    game.dotX = dotX;
+    var cacheIntegersTill = [];
+    function getIntegersTill(number) {
+        if (cacheIntegersTill[number])
+            return cacheIntegersTill[number];
+        var res = [];
+        for (var i = 0; i < number; i++) {
+            res.push(i);
+        }
+        cacheIntegersTill[number] = res;
+        return res;
+    }
+    game.getIntegersTill = getIntegersTill;
+    var cacheMatrixTill = [];
+    function getMatrixTill(number) {
+        if (cacheMatrixTill[number])
+            return cacheMatrixTill[number];
+        var res = [];
+        for (var i = 0; i < number; i++) {
+            for (var j = 0; j < number; j++) {
+                res.push([i, j]);
+            }
+        }
+        cacheMatrixTill[number] = res;
+        return res;
+    }
+    game.getMatrixTill = getMatrixTill;
+
+    angular.module('myApp', ['gameServices']).run(function ($rootScope) {
+      $rootScope.game = game;
+    });
+  </script>
+</head>
+<body>
+  <svg width="100%" height="100%" style="position: absolute;display: block;width:100%;height:100%;background-color:#FFCC33;border-radius: 0%; margin:0; padding:0;">
+      <line ng-repeat="i in game.getIntegersTill(game.dim)"
+          ng-attr-x1="{{game.rowsPercent()/2}}%" 
+          ng-attr-y1="{{-game.rowsPercent()/2 + (game.rowsPercent())*(i+1)}}%" 
+          ng-attr-x2="{{100-game.rowsPercent()/2}}%" 
+          ng-attr-y2="{{-game.rowsPercent()/2 + (game.rowsPercent())*(i+1)}}%" stroke="black" stroke-width="0.1%" />
+      <line ng-repeat="i in game.getIntegersTill(game.dim)"
+          ng-attr-y1="{{game.rowsPercent()/2}}%" 
+          ng-attr-x1="{{-game.rowsPercent()/2 + (game.rowsPercent())*(i+1)}}%" 
+          ng-attr-y2="{{100-game.rowsPercent()/2}}%" 
+          ng-attr-x2="{{-game.rowsPercent()/2 + (game.rowsPercent())*(i+1)}}%" stroke="black" stroke-width="0.1%" />
+      <line ng-repeat="m in game.getMatrixTill(3)"
+          ng-attr-y1="{{game.dotX(m[1])}}%"
+          ng-attr-x1="{{-0.5+game.dotX(m[0])}}%"
+          ng-attr-y2="{{game.dotX(m[1])}}%"
+          ng-attr-x2="{{0.5+game.dotX(m[0])}}%" stroke="black" stroke-width="1%" />
+  </svg>
+</body>
+</html>
