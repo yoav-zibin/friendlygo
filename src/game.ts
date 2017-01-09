@@ -11,13 +11,6 @@ interface Score {
   white: number, black: number;
 }
 
-import gameService = gamingPlatform.gameService;
-import alphaBetaService = gamingPlatform.alphaBetaService;
-import translate = gamingPlatform.translate;
-import resizeGameAreaService = gamingPlatform.resizeGameAreaService;
-import log = gamingPlatform.log;
-import dragAndDropService = gamingPlatform.dragAndDropService;
-
 module game {
   export let isModalShown = false;
   export let modalTitle = "";

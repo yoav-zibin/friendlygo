@@ -17,6 +17,13 @@ interface IProposalData {
 type Points = number[][]; // A point (row,col) is represented as an array with 2 elements: [row,col].
 type Sets = {white: Points[]; black: Points[];}
 
+import gameService = gamingPlatform.gameService;
+import alphaBetaService = gamingPlatform.alphaBetaService;
+import translate = gamingPlatform.translate;
+import resizeGameAreaService = gamingPlatform.resizeGameAreaService;
+import log = gamingPlatform.log;
+import dragAndDropService = gamingPlatform.dragAndDropService;
+
 module gameLogic {
   function isEqual<T>(object1: T, object2: T) {
     return angular.equals(object1, object2)
