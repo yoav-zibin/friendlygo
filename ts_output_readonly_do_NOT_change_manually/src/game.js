@@ -1,10 +1,4 @@
 ;
-var gameService = gamingPlatform.gameService;
-var alphaBetaService = gamingPlatform.alphaBetaService;
-var translate = gamingPlatform.translate;
-var resizeGameAreaService = gamingPlatform.resizeGameAreaService;
-var log = gamingPlatform.log;
-var dragAndDropService = gamingPlatform.dragAndDropService;
 var game;
 (function (game) {
     game.isModalShown = false;
@@ -649,7 +643,6 @@ var game;
     game.isHumanTurn = isHumanTurn;
     function isMyTurn() {
         return !game.didMakeMove &&
-            game.currentUpdateUI.turnIndex >= 0 &&
             game.currentUpdateUI.yourPlayerIndex === game.currentUpdateUI.turnIndex; // it's my turn
     }
     game.isMyTurn = isMyTurn;

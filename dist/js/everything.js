@@ -30889,7 +30889,7 @@ $provide.value("$locale", {
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
 ;
-"use strict"; var emulatorServicesCompilationDate = "Sun Jan 8 10:25:51 EST 2017";
+"use strict"; var emulatorServicesCompilationDate = "Mon Jan 16 13:14:42 EST 2017";
 
 ;
 var gamingPlatform;
@@ -30988,6 +30988,7 @@ var gamingPlatform;
             error("Had an error! Message=", e.error ? e.error.message : '', " stacktrace=", e.error ? e.error.stack : '');
         });
     })(log = gamingPlatform.log || (gamingPlatform.log = {}));
+    var typeCheck_logService = log;
 })(gamingPlatform || (gamingPlatform = {}));
 //# sourceMappingURL=log.js.map
 ;
@@ -31917,6 +31918,12 @@ var gamingPlatform;
 })(gamingPlatform || (gamingPlatform = {}));
 //# sourceMappingURL=angularExceptionHandler.js.map
 ;
+var gameService = gamingPlatform.gameService;
+var alphaBetaService = gamingPlatform.alphaBetaService;
+var translate = gamingPlatform.translate;
+var resizeGameAreaService = gamingPlatform.resizeGameAreaService;
+var log = gamingPlatform.log;
+var dragAndDropService = gamingPlatform.dragAndDropService;
 var gameLogic;
 (function (gameLogic) {
     function isEqual(object1, object2) {
@@ -32159,12 +32166,6 @@ var gameLogic;
 
 ;
 ;
-var gameService = gamingPlatform.gameService;
-var alphaBetaService = gamingPlatform.alphaBetaService;
-var translate = gamingPlatform.translate;
-var resizeGameAreaService = gamingPlatform.resizeGameAreaService;
-var log = gamingPlatform.log;
-var dragAndDropService = gamingPlatform.dragAndDropService;
 var game;
 (function (game) {
     game.isModalShown = false;
@@ -32809,7 +32810,6 @@ var game;
     game.isHumanTurn = isHumanTurn;
     function isMyTurn() {
         return !game.didMakeMove &&
-            game.currentUpdateUI.turnIndex >= 0 &&
             game.currentUpdateUI.yourPlayerIndex === game.currentUpdateUI.turnIndex; // it's my turn
     }
     game.isMyTurn = isMyTurn;

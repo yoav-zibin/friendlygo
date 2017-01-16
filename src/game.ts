@@ -4,9 +4,6 @@ interface SupportedLanguages {
   el: string, fr: string,
   hi: string, es: string,
 };
-interface Translations {
-  [index: string]: SupportedLanguages;
-}
 interface Score {
   white: number, black: number;
 }
@@ -639,7 +636,6 @@ module game {
 
   export function isMyTurn() {
     return !didMakeMove && // you can only make one move per updateUI.
-      currentUpdateUI.turnIndex >= 0 && // game is ongoing
       currentUpdateUI.yourPlayerIndex === currentUpdateUI.turnIndex; // it's my turn
   }
 

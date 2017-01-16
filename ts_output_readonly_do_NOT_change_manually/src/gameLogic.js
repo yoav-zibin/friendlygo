@@ -1,3 +1,9 @@
+var gameService = gamingPlatform.gameService;
+var alphaBetaService = gamingPlatform.alphaBetaService;
+var translate = gamingPlatform.translate;
+var resizeGameAreaService = gamingPlatform.resizeGameAreaService;
+var log = gamingPlatform.log;
+var dragAndDropService = gamingPlatform.dragAndDropService;
 var gameLogic;
 (function (gameLogic) {
     function isEqual(object1, object2) {
