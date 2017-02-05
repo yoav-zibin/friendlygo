@@ -15,6 +15,7 @@ var game;
     game.deadBoard = null;
     game.score = { white: 0, black: 0 };
     // For community games.
+    game.currentCommunityUI = null;
     game.playerIdToProposal = null;
     game.proposals = null;
     game.yourPlayerInfo = null;
@@ -428,6 +429,7 @@ var game;
     }
     game.setDim = setDim;
     function communityUI(communityUI) {
+        game.currentCommunityUI = communityUI;
         log.info("Game got communityUI:", communityUI);
         // If only proposals changed, then do NOT call updateUI. Then update proposals.
         var nextUpdateUI = {
@@ -469,14 +471,26 @@ var game;
             !piece && !pieceBefore ? '' : (piece == 'B' || pieceBefore == 'B' ? 'B' : 'W');
     }
     game.getBoardPiece = getBoardPiece;
-    function isProposal1(row, col) {
-        return game.proposals && game.proposals[row][col] == 1;
+    function getCellStyle(row, col) {
+        if (!game.proposals)
+            return {};
+        var count = game.proposals[row][col];
+        if (count == 0)
+            return;
+        // proposals[row][col] is > 0
+        var countZeroBased = count - 1;
+        var maxCount = game.currentCommunityUI.numberOfPlayersRequiredToMove - 2;
+        var ratio = maxCount == 0 ? 1 : countZeroBased / maxCount; // a number between 0 and 1 (inclusive).
+        // scale will be between 0.6 and 0.8.
+        var scale = 0.6 + 0.2 * ratio;
+        // opacity between 0.5 and 0.7
+        var opacity = 0.5 + 0.2 * ratio;
+        return {
+            transform: "scale(" + scale + ", " + scale + ")",
+            opacity: "" + opacity,
+        };
     }
-    game.isProposal1 = isProposal1;
-    function isProposal2(row, col) {
-        return game.proposals && game.proposals[row][col] == 2;
-    }
-    game.isProposal2 = isProposal2;
+    game.getCellStyle = getCellStyle;
     function updateUI(params) {
         log.info("Game got updateUI:", params);
         game.currentUpdateUI = params;
@@ -590,8 +604,8 @@ var game;
                 chatDescription: isPass ? "Pass" : indexToLetter(delta_2.col) + indexToNumber(delta_2.row),
                 playerInfo: game.yourPlayerInfo,
             };
-            // Decide whether we make a move or not (if we have 2 other proposals supporting the same thing).
-            if (game.proposals[delta_2.row][delta_2.col] < 2) {
+            // Decide whether we make a move or not.
+            if (game.proposals[delta_2.row][delta_2.col] < game.currentCommunityUI.numberOfPlayersRequiredToMove - 1) {
                 move = null;
             }
             else {

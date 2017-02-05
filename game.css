@@ -38,14 +38,6 @@ body {
   transform: scale(0.6, 0.6);
   animation: blinker 3s linear infinite;
 }
-.isProposal1 {
-  transform: scale(0.6, 0.6);
-  opacity: 0.5;
-}
-.isProposal2 {
-  transform: scale(0.8, 0.8);
-  opacity: 0.7;
-}
 @keyframes blinker {  
   50% { opacity: 0.1; }
 }

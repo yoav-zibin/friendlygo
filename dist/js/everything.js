@@ -30889,7 +30889,7 @@ $provide.value("$locale", {
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
 ;
-"use strict"; var emulatorServicesCompilationDate = "Mon Jan 16 13:14:42 EST 2017";
+"use strict"; var emulatorServicesCompilationDate = "Sun Feb 5 11:02:57 EST 2017";
 
 ;
 var gamingPlatform;
@@ -31044,6 +31044,7 @@ var gamingPlatform;
         gameService.currentLanguage = gameService.supportedLanguages[0];
         gameService.languageCode = "en";
         gameService.ogImageMaker = "https://dotted-guru-139914.appspot.com/";
+        gameService.numberOfPlayersRequiredToMove = 3; // for community matches.
         gameService.numberOfPlayers = 2;
         gameService.iframeRows = 1;
         gameService.iframeCols = 1;
@@ -31056,7 +31057,7 @@ var gamingPlatform;
         gameService.savedStates = [];
         gameService.selectedSavedStateToLoad = null;
         // test ogImage, getLogs, etc
-        var testingHtml = "\n    <div style=\"position:absolute; width:100%; height:10%; overflow: scroll;\">\n      <select\n        ng-options=\"playMode for playMode in gameService.playModes track by playMode\"\n        ng-model=\"gameService.playMode\"\n        ng-change=\"gameService.reloadIframes()\"></select>\n      <button ng-click=\"gameService.startNewMatch()\">Start new match</button>\n      <select ng-change=\"gameService.historyIndexChanged()\" ng-model=\"gameService.historyIndex\" ng-options=\"index for index in gameService.getIntegersTill(gameService.history.length)\">\n        <option value=\"\">-- current move --</option>\n      </select>\n      <select ng-change=\"gameService.currentLanguageChanged()\" ng-model=\"gameService.currentLanguage\" ng-options=\"language.name for language in gameService.supportedLanguages\">\n        <option value=\"\">-- current game language --</option>\n      </select>\n      <button ng-click=\"gameService.saveState()\">Save match</button>\n      <select ng-change=\"gameService.loadMatch()\" ng-model=\"gameService.selectedSavedStateToLoad\" ng-options=\"savedState.name for savedState in gameService.savedStates\">\n        <option value=\"\">-- load match --</option>\n      </select>\n      <input ng-model=\"gameService.ogImageMaker\">\n      <button ng-click=\"gameService.getOgImageState()\">Open AppEngine image</button>\n    </div>\n    <div style=\"position:absolute; width:100%; height:90%; top: 10%;\">\n      <div ng-repeat=\"row in gameService.getIntegersTill(gameService.iframeRows)\"\n          style=\"position:absolute; top:{{row * 100 / gameService.iframeRows}}%; left:0; width:100%; height:{{100 / gameService.iframeRows}}%;\">\n        <div ng-repeat=\"col in gameService.getIntegersTill(gameService.iframeCols)\"\n            style=\"position:absolute; top:0; left:{{col * 100 / gameService.iframeCols}}%; width:{{100 / gameService.iframeCols}}%; height:100%;\">\n          <iframe id=\"game_iframe_{{col + row*gameService.iframeCols}}\"\n            ng-src=\"{{gameService.locationTrustedStr}}\"\n            seamless=\"seamless\" style=\"position:absolute; width:100%; height:100%;\">\n          </iframe>\n        </div>\n      </div>\n    </div>\n  ";
+        var testingHtml = "\n    <div style=\"position:absolute; width:100%; height:10%; overflow: scroll;\">\n      <select\n        ng-options=\"playMode for playMode in gameService.playModes track by playMode\"\n        ng-model=\"gameService.playMode\"\n        ng-change=\"gameService.reloadIframes()\"></select>\n      <button ng-click=\"gameService.startNewMatch()\">Start new match</button>\n      <select ng-change=\"gameService.historyIndexChanged()\" ng-model=\"gameService.historyIndex\" ng-options=\"index for index in gameService.getIntegersTill(gameService.history.length)\">\n        <option value=\"\">-- current move --</option>\n      </select>\n      <select ng-change=\"gameService.currentLanguageChanged()\" ng-model=\"gameService.currentLanguage\" ng-options=\"language.name for language in gameService.supportedLanguages\">\n        <option value=\"\">-- current game language --</option>\n      </select>\n      <button ng-click=\"gameService.saveState()\">Save match</button>\n      <select ng-change=\"gameService.loadMatch()\" ng-model=\"gameService.selectedSavedStateToLoad\" ng-options=\"savedState.name for savedState in gameService.savedStates\">\n        <option value=\"\">-- load match --</option>\n      </select>\n      <input ng-model=\"gameService.ogImageMaker\">\n      <button ng-click=\"gameService.getOgImageState()\">Open AppEngine image</button>\n      Number of players required to move in a community match: <input ng-model=\"gameService.numberOfPlayersRequiredToMove\">\n    </div>\n    <div style=\"position:absolute; width:100%; height:90%; top: 10%;\">\n      <div ng-repeat=\"row in gameService.getIntegersTill(gameService.iframeRows)\"\n          style=\"position:absolute; top:{{row * 100 / gameService.iframeRows}}%; left:0; width:100%; height:{{100 / gameService.iframeRows}}%;\">\n        <div ng-repeat=\"col in gameService.getIntegersTill(gameService.iframeCols)\"\n            style=\"position:absolute; top:0; left:{{col * 100 / gameService.iframeCols}}%; width:{{100 / gameService.iframeCols}}%; height:100%;\">\n          <iframe id=\"game_iframe_{{col + row*gameService.iframeCols}}\"\n            ng-src=\"{{gameService.locationTrustedStr}}\"\n            seamless=\"seamless\" style=\"position:absolute; width:100%; height:100%;\">\n          </iframe>\n        </div>\n      </div>\n    </div>\n  ";
         var cacheIntegersTill = [];
         function getIntegersTill(number) {
             if (cacheIntegersTill[number])
@@ -31145,7 +31146,7 @@ var gamingPlatform;
                 }
                 else if (gameService.playMode == "multiplayer") {
                     gameService.iframeRows = 1;
-                    gameService.iframeCols = gameService.numberOfPlayers + 1;
+                    gameService.iframeCols = gameService.numberOfPlayers; // if I want to support a viewer, then add +1.
                 }
                 else {
                     gameService.iframeRows = 1;
@@ -31258,6 +31259,7 @@ var gamingPlatform;
             var state = getState();
             if (gameService.playMode == "community") {
                 var communityUI = {
+                    numberOfPlayersRequiredToMove: gameService.numberOfPlayersRequiredToMove,
                     yourPlayerIndex: index,
                     yourPlayerInfo: {
                         avatarImageUrl: "",
@@ -31886,9 +31888,6 @@ var gamingPlatform;
         }])
         .factory('$exceptionHandler', function () {
         var didSendBugReport = false;
-        function isLocalHost() {
-            return location.hostname === "localhost" || location.protocol === "file:";
-        }
         function angularErrorHandler(exception, cause) {
             var errMsg = {
                 gameUrl: '' + window.location,
@@ -31901,8 +31900,6 @@ var gamingPlatform;
             if (didSendBugReport)
                 return;
             didSendBugReport = true;
-            if (isLocalHost())
-                window.alert("Game had an unexpected error. If you know JavaScript, you can look at the console and try to debug it :)");
             // To make sure students don't get:
             // Error: Uncaught DataCloneError: Failed to execute 'postMessage' on 'Window': An object could not be cloned.
             // I serialize to string and back.
@@ -32182,6 +32179,7 @@ var game;
     game.deadBoard = null;
     game.score = { white: 0, black: 0 };
     // For community games.
+    game.currentCommunityUI = null;
     game.playerIdToProposal = null;
     game.proposals = null;
     game.yourPlayerInfo = null;
@@ -32595,6 +32593,7 @@ var game;
     }
     game.setDim = setDim;
     function communityUI(communityUI) {
+        game.currentCommunityUI = communityUI;
         log.info("Game got communityUI:", communityUI);
         // If only proposals changed, then do NOT call updateUI. Then update proposals.
         var nextUpdateUI = {
@@ -32636,14 +32635,26 @@ var game;
             !piece && !pieceBefore ? '' : (piece == 'B' || pieceBefore == 'B' ? 'B' : 'W');
     }
     game.getBoardPiece = getBoardPiece;
-    function isProposal1(row, col) {
-        return game.proposals && game.proposals[row][col] == 1;
+    function getCellStyle(row, col) {
+        if (!game.proposals)
+            return {};
+        var count = game.proposals[row][col];
+        if (count == 0)
+            return;
+        // proposals[row][col] is > 0
+        var countZeroBased = count - 1;
+        var maxCount = game.currentCommunityUI.numberOfPlayersRequiredToMove - 2;
+        var ratio = maxCount == 0 ? 1 : countZeroBased / maxCount; // a number between 0 and 1 (inclusive).
+        // scale will be between 0.6 and 0.8.
+        var scale = 0.6 + 0.2 * ratio;
+        // opacity between 0.5 and 0.7
+        var opacity = 0.5 + 0.2 * ratio;
+        return {
+            transform: "scale(" + scale + ", " + scale + ")",
+            opacity: "" + opacity,
+        };
     }
-    game.isProposal1 = isProposal1;
-    function isProposal2(row, col) {
-        return game.proposals && game.proposals[row][col] == 2;
-    }
-    game.isProposal2 = isProposal2;
+    game.getCellStyle = getCellStyle;
     function updateUI(params) {
         log.info("Game got updateUI:", params);
         game.currentUpdateUI = params;
@@ -32757,8 +32768,8 @@ var game;
                 chatDescription: isPass ? "Pass" : indexToLetter(delta_2.col) + indexToNumber(delta_2.row),
                 playerInfo: game.yourPlayerInfo,
             };
-            // Decide whether we make a move or not (if we have 2 other proposals supporting the same thing).
-            if (game.proposals[delta_2.row][delta_2.col] < 2) {
+            // Decide whether we make a move or not.
+            if (game.proposals[delta_2.row][delta_2.col] < game.currentCommunityUI.numberOfPlayersRequiredToMove - 1) {
                 move = null;
             }
             else {

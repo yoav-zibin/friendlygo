@@ -28,6 +28,7 @@ module game {
   export let deadBoard: boolean[][] = null;
   export let score: Score = {white: 0, black: 0};
   // For community games.
+  export let currentCommunityUI: ICommunityUI = null;
   export let playerIdToProposal: IProposals = null;
   export let proposals: number[][] = null;
   export let yourPlayerInfo: IPlayerInfo = null;
@@ -438,6 +439,7 @@ module game {
   }
   
   function communityUI(communityUI: ICommunityUI) {
+    currentCommunityUI = communityUI;
     log.info("Game got communityUI:", communityUI);
     // If only proposals changed, then do NOT call updateUI. Then update proposals.
     let nextUpdateUI: IUpdateUI = {
@@ -477,11 +479,22 @@ module game {
     return isProposal ? (currentUpdateUI.turnIndex == 0 ? 'B' : 'W') :
         !piece && !pieceBefore ? '' : (piece == 'B'  || pieceBefore == 'B' ? 'B' : 'W');
   } 
-  export function isProposal1(row: number, col: number) {
-    return proposals && proposals[row][col] == 1;
-  } 
-  export function isProposal2(row: number, col: number) {
-    return proposals && proposals[row][col] == 2;
+  export function getCellStyle(row: number, col: number) {
+    if (!proposals) return {};
+    let count = proposals[row][col];
+    if (count == 0) return;
+    // proposals[row][col] is > 0
+    let countZeroBased = count - 1;
+    let maxCount = currentCommunityUI.numberOfPlayersRequiredToMove - 2;
+    let ratio = maxCount == 0 ? 1 : countZeroBased / maxCount; // a number between 0 and 1 (inclusive).
+    // scale will be between 0.6 and 0.8.
+    let scale = 0.6 + 0.2 * ratio;
+    // opacity between 0.5 and 0.7
+    let opacity = 0.5 + 0.2 * ratio;
+    return {
+      transform: `scale(${scale}, ${scale})`,
+      opacity: "" + opacity,
+    };
   }
 
   function updateUI(params: IUpdateUI) {
@@ -583,8 +596,8 @@ module game {
         chatDescription: isPass ? "Pass" : indexToLetter(delta.col) + indexToNumber(delta.row),
         playerInfo: yourPlayerInfo,
       };
-      // Decide whether we make a move or not (if we have 2 other proposals supporting the same thing).
-      if (proposals[delta.row][delta.col] < 2) {
+      // Decide whether we make a move or not.
+      if (proposals[delta.row][delta.col] < currentCommunityUI.numberOfPlayersRequiredToMove - 1) {
         move = null;
       } else {
         // yes, making a move! The only tricky part is the last move when we select dead groups:
