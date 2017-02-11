@@ -28,7 +28,6 @@ module game {
   export let deadBoard: boolean[][] = null;
   export let score: Score = {white: 0, black: 0};
   // For community games.
-  export let currentCommunityUI: ICommunityUI = null;
   export let playerIdToProposal: IProposals = null;
   export let proposals: number[][] = null;
   export let yourPlayerInfo: IPlayerInfo = null;
@@ -223,7 +222,6 @@ module game {
     dragAndDropService.addDragListener("boardArea", handleDragEvent);
     gameService.setGame({
       updateUI: updateUI,
-      communityUI: communityUI,
       getStateForOgImage: getStateForOgImage,
     });
   }
@@ -438,54 +436,21 @@ module game {
     boardBeforeMove = gameLogic.createNewBoard(dim);
   }
   
-  function communityUI(communityUI: ICommunityUI) {
-    currentCommunityUI = communityUI;
-    log.info("Game got communityUI:", communityUI);
-    // If only proposals changed, then do NOT call updateUI. Then update proposals.
-    let nextUpdateUI: IUpdateUI = {
-        playersInfo: [],
-        playMode: communityUI.yourPlayerIndex,
-        numberOfPlayers: communityUI.numberOfPlayers,
-        state: communityUI.state,
-        turnIndex: communityUI.turnIndex,
-        endMatchScores: communityUI.endMatchScores,
-        yourPlayerIndex: communityUI.yourPlayerIndex,
-      };
-    if (angular.equals(yourPlayerInfo, communityUI.yourPlayerInfo) &&
-        currentUpdateUI && angular.equals(currentUpdateUI, nextUpdateUI)) {
-      // We're not calling updateUI to avoid disrupting the player if he's in the middle of a move.
-    } else {
-      // Things changed, so call updateUI.
-      updateUI(nextUpdateUI);
-      if (!hasDim) setDim(19); // Community matches are always 19x19.
-    }
-    // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
-    yourPlayerInfo = communityUI.yourPlayerInfo;
-    playerIdToProposal = communityUI.playerIdToProposal; 
-    didMakeMove = !!playerIdToProposal[communityUI.yourPlayerInfo.playerId];
-    proposals = gameLogic.createNewBoardWithElement(dim, 0);
-    proposals[-1] = [];
-    proposals[-1][-1] = 0; // number of times we proposed to pass.
-    for (let playerId in playerIdToProposal) {
-      let proposal = playerIdToProposal[playerId];
-      let delta = proposal.data.delta;
-      proposals[delta.row][delta.col]++;
-    }
-  }
-  export function getBoardPiece(row: number, col: number) {
+  export function getBoardPiece(row: number, col: number): string {
     let piece = game.board[row][col];
     let pieceBefore = game.boardBeforeMove[row][col]; 
     let isProposal = proposals && proposals[row][col] > 0;
     return isProposal ? (currentUpdateUI.turnIndex == 0 ? 'B' : 'W') :
         !piece && !pieceBefore ? '' : (piece == 'B'  || pieceBefore == 'B' ? 'B' : 'W');
   } 
-  export function getCellStyle(row: number, col: number) {
+
+  export function getCellStyle(row: number, col: number): Object {
     if (!proposals) return {};
     let count = proposals[row][col];
-    if (count == 0) return;
+    if (count == 0) return {};
     // proposals[row][col] is > 0
     let countZeroBased = count - 1;
-    let maxCount = currentCommunityUI.numberOfPlayersRequiredToMove - 2;
+    let maxCount = currentUpdateUI.numberOfPlayersRequiredToMove - 2;
     let ratio = maxCount == 0 ? 1 : countZeroBased / maxCount; // a number between 0 and 1 (inclusive).
     // scale will be between 0.6 and 0.8.
     let scale = 0.6 + 0.2 * ratio;
@@ -497,13 +462,34 @@ module game {
     };
   }
 
+  function updateProposals() {
+    // This must be after calling updateUI, because we nullify things there (like proposals)
+    didMakeMove = !!playerIdToProposal[yourPlayerInfo.playerId];
+    proposals = gameLogic.createNewBoardWithElement(19, 0); // Community matches are always 19x19.
+    proposals[-1] = [];
+    proposals[-1][-1] = 0; // number of times we proposed to pass.
+    for (let playerId in playerIdToProposal) {
+      let proposal = playerIdToProposal[playerId];
+      let delta = proposal.data.delta;
+      proposals[delta.row][delta.col]++;
+    }
+  }
+
   function updateUI(params: IUpdateUI) {
     log.info("Game got updateUI:", params);
-    currentUpdateUI = params;
     didMakeMove = false; // Only one move per updateUI
+    yourPlayerInfo = params.yourPlayerInfo;
+    playerIdToProposal = params.playerIdToProposal;
     proposals = null;
-    playerIdToProposal = null;
-    yourPlayerInfo = null;
+    if (playerIdToProposal) {
+      updateProposals();
+      // If only proposals changed, then return.
+      // I don't want to disrupt the player if he's in the middle of a move.
+      params.playerIdToProposal = null;
+      if (currentUpdateUI && angular.equals(currentUpdateUI, params)) return;
+    }
+
+    currentUpdateUI = params;
     score = {white: 0, black: 0};
     resetDeadSets();
     clearClickToDrag();
@@ -514,6 +500,7 @@ module game {
       board = gameLogic.createNewBoard(dim);
       boardBeforeMove = gameLogic.createNewBoard(dim);
       passes = 0;
+      if (playerIdToProposal) setDim(19); // Community matches are always 19x19.
     } else {
       let state = params.state;
       board = state.board;
@@ -584,7 +571,7 @@ module game {
     }
     didMakeMove = true;
     if (!proposals) {
-      gameService.makeMove(move);
+      gameService.makeMove(move, null);
     } else {
       let delta = move.state.delta;
       let isPass = delta.row == -1 && delta.col == -1;
@@ -597,7 +584,7 @@ module game {
         playerInfo: yourPlayerInfo,
       };
       // Decide whether we make a move or not.
-      if (proposals[delta.row][delta.col] < currentCommunityUI.numberOfPlayersRequiredToMove - 1) {
+      if (proposals[delta.row][delta.col] < currentUpdateUI.numberOfPlayersRequiredToMove - 1) {
         move = null;
       } else {
         // yes, making a move! The only tricky part is the last move when we select dead groups:
@@ -622,7 +609,7 @@ module game {
           move.state.deadBoard = chosenDeadBoardProposal;
         }
       }
-      gameService.communityMove(myProposal, move);
+      gameService.makeMove(move, myProposal);
     }
   }
 

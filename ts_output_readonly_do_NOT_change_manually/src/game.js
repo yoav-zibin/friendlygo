@@ -15,7 +15,6 @@ var game;
     game.deadBoard = null;
     game.score = { white: 0, black: 0 };
     // For community games.
-    game.currentCommunityUI = null;
     game.playerIdToProposal = null;
     game.proposals = null;
     game.yourPlayerInfo = null;
@@ -203,7 +202,6 @@ var game;
         dragAndDropService.addDragListener("boardArea", handleDragEvent);
         gameService.setGame({
             updateUI: updateUI,
-            communityUI: communityUI,
             getStateForOgImage: getStateForOgImage,
         });
     }
@@ -428,41 +426,6 @@ var game;
         game.boardBeforeMove = gameLogic.createNewBoard(game.dim);
     }
     game.setDim = setDim;
-    function communityUI(communityUI) {
-        game.currentCommunityUI = communityUI;
-        log.info("Game got communityUI:", communityUI);
-        // If only proposals changed, then do NOT call updateUI. Then update proposals.
-        var nextUpdateUI = {
-            playersInfo: [],
-            playMode: communityUI.yourPlayerIndex,
-            numberOfPlayers: communityUI.numberOfPlayers,
-            state: communityUI.state,
-            turnIndex: communityUI.turnIndex,
-            endMatchScores: communityUI.endMatchScores,
-            yourPlayerIndex: communityUI.yourPlayerIndex,
-        };
-        if (angular.equals(game.yourPlayerInfo, communityUI.yourPlayerInfo) &&
-            game.currentUpdateUI && angular.equals(game.currentUpdateUI, nextUpdateUI)) {
-        }
-        else {
-            // Things changed, so call updateUI.
-            updateUI(nextUpdateUI);
-            if (!game.hasDim)
-                setDim(19); // Community matches are always 19x19.
-        }
-        // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
-        game.yourPlayerInfo = communityUI.yourPlayerInfo;
-        game.playerIdToProposal = communityUI.playerIdToProposal;
-        game.didMakeMove = !!game.playerIdToProposal[communityUI.yourPlayerInfo.playerId];
-        game.proposals = gameLogic.createNewBoardWithElement(game.dim, 0);
-        game.proposals[-1] = [];
-        game.proposals[-1][-1] = 0; // number of times we proposed to pass.
-        for (var playerId in game.playerIdToProposal) {
-            var proposal = game.playerIdToProposal[playerId];
-            var delta_1 = proposal.data.delta;
-            game.proposals[delta_1.row][delta_1.col]++;
-        }
-    }
     function getBoardPiece(row, col) {
         var piece = game.board[row][col];
         var pieceBefore = game.boardBeforeMove[row][col];
@@ -476,10 +439,10 @@ var game;
             return {};
         var count = game.proposals[row][col];
         if (count == 0)
-            return;
+            return {};
         // proposals[row][col] is > 0
         var countZeroBased = count - 1;
-        var maxCount = game.currentCommunityUI.numberOfPlayersRequiredToMove - 2;
+        var maxCount = game.currentUpdateUI.numberOfPlayersRequiredToMove - 2;
         var ratio = maxCount == 0 ? 1 : countZeroBased / maxCount; // a number between 0 and 1 (inclusive).
         // scale will be between 0.6 and 0.8.
         var scale = 0.6 + 0.2 * ratio;
@@ -491,13 +454,33 @@ var game;
         };
     }
     game.getCellStyle = getCellStyle;
+    function updateProposals() {
+        // This must be after calling updateUI, because we nullify things there (like proposals)
+        game.didMakeMove = !!game.playerIdToProposal[game.yourPlayerInfo.playerId];
+        game.proposals = gameLogic.createNewBoardWithElement(19, 0); // Community matches are always 19x19.
+        game.proposals[-1] = [];
+        game.proposals[-1][-1] = 0; // number of times we proposed to pass.
+        for (var playerId in game.playerIdToProposal) {
+            var proposal = game.playerIdToProposal[playerId];
+            var delta_1 = proposal.data.delta;
+            game.proposals[delta_1.row][delta_1.col]++;
+        }
+    }
     function updateUI(params) {
         log.info("Game got updateUI:", params);
-        game.currentUpdateUI = params;
         game.didMakeMove = false; // Only one move per updateUI
+        game.yourPlayerInfo = params.yourPlayerInfo;
+        game.playerIdToProposal = params.playerIdToProposal;
         game.proposals = null;
-        game.playerIdToProposal = null;
-        game.yourPlayerInfo = null;
+        if (game.playerIdToProposal) {
+            updateProposals();
+            // If only proposals changed, then return.
+            // I don't want to disrupt the player if he's in the middle of a move.
+            params.playerIdToProposal = null;
+            if (game.currentUpdateUI && angular.equals(game.currentUpdateUI, params))
+                return;
+        }
+        game.currentUpdateUI = params;
         game.score = { white: 0, black: 0 };
         resetDeadSets();
         clearClickToDrag();
@@ -508,6 +491,8 @@ var game;
             game.board = gameLogic.createNewBoard(game.dim);
             game.boardBeforeMove = gameLogic.createNewBoard(game.dim);
             game.passes = 0;
+            if (game.playerIdToProposal)
+                setDim(19); // Community matches are always 19x19.
         }
         else {
             var state = params.state;
@@ -591,7 +576,7 @@ var game;
         }
         game.didMakeMove = true;
         if (!game.proposals) {
-            gameService.makeMove(move);
+            gameService.makeMove(move, null);
         }
         else {
             var delta_2 = move.state.delta;
@@ -605,7 +590,7 @@ var game;
                 playerInfo: game.yourPlayerInfo,
             };
             // Decide whether we make a move or not.
-            if (game.proposals[delta_2.row][delta_2.col] < game.currentCommunityUI.numberOfPlayersRequiredToMove - 1) {
+            if (game.proposals[delta_2.row][delta_2.col] < game.currentUpdateUI.numberOfPlayersRequiredToMove - 1) {
                 move = null;
             }
             else {
@@ -634,7 +619,7 @@ var game;
                     move.state.deadBoard = chosenDeadBoardProposal;
                 }
             }
-            gameService.communityMove(myProposal, move);
+            gameService.makeMove(move, myProposal);
         }
     }
     function isFirstMove() {
