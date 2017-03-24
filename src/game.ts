@@ -287,6 +287,7 @@ module game {
   }
 
   function showModal(titleId: string, bodyId: string) {
+    if (!isMyTurn()) return;
     log.info("showModal: ", titleId);
     isModalShown = true;
     modalTitle = translate(titleId);
@@ -357,7 +358,7 @@ module game {
     let topLeft = getSquareTopLeft(row, col);
     clickToDragPiece.style.left = topLeft.left + "px";
     clickToDragPiece.style.top = topLeft.top + "px";
-    if (type === "touchend" || type === "touchcancel" || type === "touchleave" || type === "mouseup") {
+    if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
       // drag ended
       dragDone(row, col);
     }
@@ -636,6 +637,7 @@ module game {
 
   export function isMyTurn() {
     return !didMakeMove && // you can only make one move per updateUI.
+      currentUpdateUI.turnIndex >= 0 && // game is ongoing
       currentUpdateUI.yourPlayerIndex === currentUpdateUI.turnIndex; // it's my turn
   }
 

@@ -274,6 +274,8 @@ var game;
     }
     game.confirmClicked = confirmClicked;
     function showModal(titleId, bodyId) {
+        if (!isMyTurn())
+            return;
         log.info("showModal: ", titleId);
         game.isModalShown = true;
         game.modalTitle = translate(titleId);
@@ -343,7 +345,7 @@ var game;
         var topLeft = getSquareTopLeft(row, col);
         clickToDragPiece.style.left = topLeft.left + "px";
         clickToDragPiece.style.top = topLeft.top + "px";
-        if (type === "touchend" || type === "touchcancel" || type === "touchleave" || type === "mouseup") {
+        if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
             // drag ended
             dragDone(row, col);
         }
@@ -642,6 +644,7 @@ var game;
     game.isHumanTurn = isHumanTurn;
     function isMyTurn() {
         return !game.didMakeMove &&
+            game.currentUpdateUI.turnIndex >= 0 &&
             game.currentUpdateUI.yourPlayerIndex === game.currentUpdateUI.turnIndex; // it's my turn
     }
     game.isMyTurn = isMyTurn;
