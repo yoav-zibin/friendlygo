@@ -30889,7 +30889,7 @@ $provide.value("$locale", {
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
 ;
-"use strict"; var emulatorServicesCompilationDate = "Fri Feb 17 09:31:03 EST 2017";
+"use strict"; var emulatorServicesCompilationDate = "Wed Apr 12 07:24:12 EDT 2017";
 
 ;
 var gamingPlatform;
@@ -30908,6 +30908,7 @@ var gamingPlatform;
             return ILogLevel;
         })();
         var alwaysLogs = [];
+        var logLaterFunctions = [];
         var lastLogs = [];
         var startTime = getCurrentTime();
         function getCurrentTime() {
@@ -30933,6 +30934,7 @@ var gamingPlatform;
             lastLogs.push(getLogEntry(args, logLevel, consoleFunc));
         }
         function getLogs() {
+            alwaysLog(logLaterFunctions.map(function (func) { return func(); }));
             return lastLogs.concat(alwaysLogs);
         }
         log_1.getLogs = getLogs;
@@ -30944,6 +30946,10 @@ var gamingPlatform;
             alwaysLogs.push(getLogEntry(args, ILogLevel.ALWAYS, console.log));
         }
         log_1.alwaysLog = alwaysLog;
+        function logLater(func) {
+            logLaterFunctions.push(func);
+        }
+        log_1.logLater = logLater;
         function info() {
             var args = [];
             for (var _i = 0; _i < arguments.length; _i++) {
@@ -31777,14 +31783,14 @@ var gameLogic;
         return true;
     }
     // returns a random move that the computer plays
-    function createComputerMove(boardBeforeMove, board, passes, turnIndexBeforeMove) {
+    function createComputerMove(board, passes, turnIndexBeforeMove, previousPosJustCapturedForKo) {
         var possibleMoves = [];
         var dim = board.length;
         for (var i = 0; i < dim; i++) {
             for (var j = 0; j < dim; j++) {
                 var delta = { row: i, col: j };
                 try {
-                    var testmove = createMove(boardBeforeMove, board, passes, null, delta, turnIndexBeforeMove);
+                    var testmove = createMove(board, passes, null, delta, turnIndexBeforeMove, previousPosJustCapturedForKo);
                     possibleMoves.push(testmove);
                 }
                 catch (e) {
@@ -31793,7 +31799,7 @@ var gameLogic;
         }
         try {
             var delta = { row: -1, col: -1 };
-            var testmove = createMove(boardBeforeMove, board, passes, null, delta, turnIndexBeforeMove);
+            var testmove = createMove(board, passes, null, delta, turnIndexBeforeMove, previousPosJustCapturedForKo);
             possibleMoves.push(testmove);
         }
         catch (e) {
@@ -31802,6 +31808,7 @@ var gameLogic;
         return randomMove;
     }
     gameLogic.createComputerMove = createComputerMove;
+    /** Returns the number of pieces of the color for turnIndex. */
     function getboardNum(board, turnIndex) {
         var sum = 0;
         var dim = board.length;
@@ -31812,12 +31819,29 @@ var gameLogic;
                     sum++;
         return sum;
     }
-    function createMove(boardBeforeMove, board, passes, deadBoard, delta, turnIndexBeforeMove) {
+    function getPosJustCapturedForKo(boardBeforeMove, boardAfterMove, turnIndex) {
+        var oppositeColor = turnIndex ? 'B' : 'W';
+        var result = null;
+        var dim = boardBeforeMove.length;
+        for (var i = 0; i < dim; i++) {
+            for (var j = 0; j < dim; j++) {
+                if (boardBeforeMove[i][j] === oppositeColor && boardAfterMove[i][j] === '') {
+                    // We ate an opponent piece
+                    if (result === null) {
+                        result = { row: i, col: j };
+                    }
+                    else {
+                        return null; // we ate more than one piece
+                    }
+                }
+            }
+        }
+        return result;
+    }
+    function createMove(board, passes, deadBoard, delta, turnIndexBeforeMove, previousPosJustCapturedForKo) {
         if (!passes)
             passes = 0;
         var dim = board.length;
-        if (!boardBeforeMove)
-            boardBeforeMove = createNewBoard(dim);
         var setnumBefore = getboardNum(board, turnIndexBeforeMove);
         var boardAfterMove = copyObject(board);
         var passesAfterMove = passes;
@@ -31836,6 +31860,9 @@ var gameLogic;
         }
         else {
             // else make the move/change the board
+            if (previousPosJustCapturedForKo && previousPosJustCapturedForKo.row === row && previousPosJustCapturedForKo.col === col) {
+                throw Error("KO!");
+            }
             // bad delta should automatically throw error
             boardAfterMove[row][col] = turnIndexBeforeMove === 0 ? 'B' : 'W';
             passesAfterMove = 0; //if a move is made, passes is reset
@@ -31845,8 +31872,9 @@ var gameLogic;
         var setnumAfter = getboardNum(boardAfterMove, turnIndexBeforeMove);
         if (setnumAfter <= setnumBefore && passes === passesAfterMove)
             throw Error('you can not suicide.');
-        if (angular.equals(boardBeforeMove, boardAfterMove) && passes === passesAfterMove)
+        if (angular.equals(board, boardAfterMove) && passes === passesAfterMove)
             throw Error("don’t allow a move that brings the game back to stateBeforeMove.");
+        var posJustCapturedForKo = getPosJustCapturedForKo(board, boardAfterMove, turnIndexBeforeMove);
         var endMatchScores = null;
         var turnIndexAfterMove = 1 - turnIndexBeforeMove;
         if (isBoardFull(boardAfterMove)) {
@@ -31858,9 +31886,10 @@ var gameLogic;
             turnIndex: turnIndexAfterMove,
             state: {
                 board: boardAfterMove,
-                boardBeforeMove: boardBeforeMove,
+                boardBeforeMove: board,
                 delta: delta,
                 passes: passesAfterMove,
+                posJustCapturedForKo: posJustCapturedForKo,
                 deadBoard: deadBoard,
             },
         };
@@ -31891,6 +31920,7 @@ var game;
     game.boardBeforeMove = null;
     game.moveToConfirm = null;
     game.delta = null;
+    game.posJustCapturedForKo = null;
     game.deadBoard = null;
     game.score = { white: 0, black: 0 };
     // For community games.
@@ -32088,7 +32118,7 @@ var game;
     function getStateForOgImage() {
         if (!game.currentUpdateUI || !game.currentUpdateUI.state) {
             log.warn("Got stateForOgImage without currentUpdateUI!");
-            return;
+            return '';
         }
         var state = game.currentUpdateUI.state;
         if (!state || !game.hasDim)
@@ -32372,6 +32402,7 @@ var game;
             game.board = gameLogic.createNewBoard(game.dim);
             game.boardBeforeMove = gameLogic.createNewBoard(game.dim);
             game.passes = 0;
+            game.posJustCapturedForKo = null;
             if (game.playerIdToProposal)
                 setDim(19); // Community matches are always 19x19.
         }
@@ -32383,6 +32414,7 @@ var game;
             game.boardBeforeMove = state.boardBeforeMove;
             game.delta = state.delta;
             game.passes = state.passes;
+            game.posJustCapturedForKo = state.posJustCapturedForKo;
             setDeadSets(state.deadBoard);
             if (game.passes == 2) {
                 calcScore();
@@ -32447,7 +32479,7 @@ var game;
     function maybeSendComputerMove() {
         if (!isComputerTurn())
             return;
-        var move = gameLogic.createComputerMove(game.boardBeforeMove, game.board, game.passes, game.turnIndex);
+        var move = gameLogic.createComputerMove(game.board, game.passes, game.turnIndex, game.posJustCapturedForKo);
         log.info("Computer move: ", move);
         makeMove(move);
     }
@@ -32570,7 +32602,7 @@ var game;
         }
         try {
             var delta_3 = { row: rrow, col: ccol };
-            var move = gameLogic.createMove(game.boardBeforeMove, game.board, game.passes, game.deadBoard, delta_3, game.turnIndex);
+            var move = gameLogic.createMove(game.board, game.passes, game.deadBoard, delta_3, game.turnIndex, game.posJustCapturedForKo);
             makeMove(move);
         }
         catch (e) {

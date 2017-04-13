@@ -23,6 +23,7 @@ module game {
   export let delta: BoardDelta = null;
   export let passes: number;
   export let turnIndex: number;
+  export let posJustCapturedForKo: BoardDelta = null;
   // For marking dead groups at the end of a match (only one player does it: the last one that passed)
   export let allSets: Points[];
   export let deadBoard: boolean[][] = null;
@@ -226,10 +227,10 @@ module game {
     });
   }
 
-  export function getStateForOgImage() {
+  export function getStateForOgImage(): string {
     if (!currentUpdateUI || !currentUpdateUI.state) {
       log.warn("Got stateForOgImage without currentUpdateUI!");
-      return;
+      return '';
     }
     let state: IState = currentUpdateUI.state;
     if (!state || !hasDim) return '';
@@ -501,6 +502,7 @@ module game {
       board = gameLogic.createNewBoard(dim);
       boardBeforeMove = gameLogic.createNewBoard(dim);
       passes = 0;
+      posJustCapturedForKo = null;
       if (playerIdToProposal) setDim(19); // Community matches are always 19x19.
     } else {
       let state = params.state;
@@ -510,6 +512,7 @@ module game {
       boardBeforeMove = state.boardBeforeMove;
       delta = state.delta;
       passes = state.passes;
+      posJustCapturedForKo = state.posJustCapturedForKo;
       setDeadSets(state.deadBoard);
       if (passes == 2) {
         calcScore();
@@ -561,7 +564,7 @@ module game {
 
   function maybeSendComputerMove() {
     if (!isComputerTurn()) return;
-    let move = gameLogic.createComputerMove(boardBeforeMove, board, passes, turnIndex);
+    let move = gameLogic.createComputerMove(board, passes, turnIndex, posJustCapturedForKo);
     log.info("Computer move: ", move);
     makeMove(move);
   }
@@ -681,7 +684,7 @@ module game {
     }
     try {
       let delta = { row: rrow, col: ccol };
-      let move = gameLogic.createMove(boardBeforeMove, board, passes, deadBoard, delta, turnIndex);
+      let move = gameLogic.createMove(board, passes, deadBoard, delta, turnIndex, posJustCapturedForKo);
       makeMove(move);
     } catch (e) {
       log.log(["Cannot make move:", rrow, ccol, e]);

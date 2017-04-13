@@ -12,6 +12,7 @@ var game;
     game.boardBeforeMove = null;
     game.moveToConfirm = null;
     game.delta = null;
+    game.posJustCapturedForKo = null;
     game.deadBoard = null;
     game.score = { white: 0, black: 0 };
     // For community games.
@@ -209,7 +210,7 @@ var game;
     function getStateForOgImage() {
         if (!game.currentUpdateUI || !game.currentUpdateUI.state) {
             log.warn("Got stateForOgImage without currentUpdateUI!");
-            return;
+            return '';
         }
         var state = game.currentUpdateUI.state;
         if (!state || !game.hasDim)
@@ -493,6 +494,7 @@ var game;
             game.board = gameLogic.createNewBoard(game.dim);
             game.boardBeforeMove = gameLogic.createNewBoard(game.dim);
             game.passes = 0;
+            game.posJustCapturedForKo = null;
             if (game.playerIdToProposal)
                 setDim(19); // Community matches are always 19x19.
         }
@@ -504,6 +506,7 @@ var game;
             game.boardBeforeMove = state.boardBeforeMove;
             game.delta = state.delta;
             game.passes = state.passes;
+            game.posJustCapturedForKo = state.posJustCapturedForKo;
             setDeadSets(state.deadBoard);
             if (game.passes == 2) {
                 calcScore();
@@ -568,7 +571,7 @@ var game;
     function maybeSendComputerMove() {
         if (!isComputerTurn())
             return;
-        var move = gameLogic.createComputerMove(game.boardBeforeMove, game.board, game.passes, game.turnIndex);
+        var move = gameLogic.createComputerMove(game.board, game.passes, game.turnIndex, game.posJustCapturedForKo);
         log.info("Computer move: ", move);
         makeMove(move);
     }
@@ -691,7 +694,7 @@ var game;
         }
         try {
             var delta_3 = { row: rrow, col: ccol };
-            var move = gameLogic.createMove(game.boardBeforeMove, game.board, game.passes, game.deadBoard, delta_3, game.turnIndex);
+            var move = gameLogic.createMove(game.board, game.passes, game.deadBoard, delta_3, game.turnIndex, game.posJustCapturedForKo);
             makeMove(move);
         }
         catch (e) {

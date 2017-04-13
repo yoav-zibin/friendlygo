@@ -9,6 +9,9 @@ interface IState {
   delta: BoardDelta; // [-1,-1] means a pass.
   passes: number;
   deadBoard: boolean[][];
+  // For the rule of KO:
+  // One may not capture just one stone, if that stone was played on the previous move, and that move also captured just one stone.
+  posJustCapturedForKo: BoardDelta;
 }
 interface IProposalData {
   delta: BoardDelta; // [-1,-1] means a pass.
@@ -169,14 +172,14 @@ module gameLogic {
   }
 
   // returns a random move that the computer plays
-  export function createComputerMove(boardBeforeMove: Board, board: Board, passes: number, turnIndexBeforeMove: number) {
+  export function createComputerMove(board: Board, passes: number, turnIndexBeforeMove: number, previousPosJustCapturedForKo: BoardDelta) {
     let possibleMoves: IMove[] = [];
     let dim = board.length;
     for (let i = 0; i < dim; i++) {
       for (let j = 0; j < dim; j++) {
         let delta = { row: i, col: j };
         try {
-          let testmove = createMove(boardBeforeMove, board, passes, null, delta, turnIndexBeforeMove);
+          let testmove = createMove(board, passes, null, delta, turnIndexBeforeMove, previousPosJustCapturedForKo);
           possibleMoves.push(testmove);
         } catch (e) {
           // cell in that position was full
@@ -185,7 +188,7 @@ module gameLogic {
     }
     try {
       let delta = { row: -1, col: -1 };
-      let testmove = createMove(boardBeforeMove, board, passes, null, delta, turnIndexBeforeMove);
+      let testmove = createMove(board, passes, null, delta, turnIndexBeforeMove, previousPosJustCapturedForKo);
       possibleMoves.push(testmove);
     } catch (e) {
       // Couldn't add pass as a move?
@@ -194,6 +197,7 @@ module gameLogic {
     return randomMove;
   }
 
+  /** Returns the number of pieces of the color for turnIndex. */
   function getboardNum(board: Board, turnIndex: number): number {
     let sum = 0;
     let dim = board.length;
@@ -204,11 +208,28 @@ module gameLogic {
           sum++;
     return sum;
   }
+  function getPosJustCapturedForKo(boardBeforeMove: Board, boardAfterMove: Board, turnIndex: number): BoardDelta {
+    let oppositeColor = turnIndex ? 'B' : 'W';
+    let result: BoardDelta = null;
+    let dim = boardBeforeMove.length;
+    for (let i = 0; i < dim; i++) {
+      for (let j = 0; j < dim; j++) {
+        if (boardBeforeMove[i][j] === oppositeColor && boardAfterMove[i][j] === '') {
+          // We ate an opponent piece
+          if (result === null) {
+            result = {row: i, col: j};
+          } else {
+            return null; // we ate more than one piece
+          }
+        }
+      }
+    }
+    return result;
+  }
 
-  export function createMove(boardBeforeMove: Board, board: Board, passes: number, deadBoard: boolean[][], delta: BoardDelta, turnIndexBeforeMove: number): IMove {
+  export function createMove(board: Board, passes: number, deadBoard: boolean[][], delta: BoardDelta, turnIndexBeforeMove: number, previousPosJustCapturedForKo: BoardDelta): IMove {
     if (!passes) passes = 0;
     let dim = board.length;
-    if (!boardBeforeMove) boardBeforeMove = createNewBoard(dim);
 
     let setnumBefore = getboardNum(board, turnIndexBeforeMove);
 
@@ -228,6 +249,9 @@ module gameLogic {
       throw Error('Space is not empty!');
     } else {
       // else make the move/change the board
+      if (previousPosJustCapturedForKo && previousPosJustCapturedForKo.row === row && previousPosJustCapturedForKo.col === col) {
+        throw Error("KO!");
+      }
       // bad delta should automatically throw error
       boardAfterMove[row][col] = turnIndexBeforeMove === 0 ? 'B' : 'W';
       passesAfterMove = 0; //if a move is made, passes is reset
@@ -236,13 +260,15 @@ module gameLogic {
     }
 
     let setnumAfter = getboardNum(boardAfterMove, turnIndexBeforeMove);
-
+    
     if (setnumAfter <= setnumBefore && passes === passesAfterMove)
       throw Error('you can not suicide.');
 
-    if (angular.equals(boardBeforeMove, boardAfterMove) && passes === passesAfterMove)
+    if (angular.equals(board, boardAfterMove) && passes === passesAfterMove)
       throw Error("don’t allow a move that brings the game back to stateBeforeMove.");
-
+  
+    let posJustCapturedForKo = getPosJustCapturedForKo(board, boardAfterMove, turnIndexBeforeMove);
+    
     let endMatchScores: number[] = null;
     let turnIndexAfterMove = 1 - turnIndexBeforeMove;
     if (isBoardFull(boardAfterMove)) {
@@ -254,9 +280,10 @@ module gameLogic {
         turnIndex: turnIndexAfterMove,
         state: {
             board: boardAfterMove,
-            boardBeforeMove: boardBeforeMove,
+            boardBeforeMove: board,
             delta: delta,
             passes: passesAfterMove,
+            posJustCapturedForKo: posJustCapturedForKo,
             deadBoard: deadBoard,
         },
     };
