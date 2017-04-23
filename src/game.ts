@@ -574,17 +574,17 @@ module game {
       return;
     }
     didMakeMove = true;
+    let delta = move.state.delta;
+    let isPass = delta.row == -1 && delta.col == -1;
+    let chatDescription = isPass ? "Pass" : indexToLetter(delta.col) + indexToNumber(delta.row);
     if (!proposals) {
-      gameService.makeMove(move, null);
+      gameService.makeMove(move, null, chatDescription);
     } else {
-      let delta = move.state.delta;
-      let isPass = delta.row == -1 && delta.col == -1;
       let myProposal:IProposal = {
         data: {
           delta: delta,
           deadBoard: move.state.deadBoard,
         },
-        chatDescription: isPass ? "Pass" : indexToLetter(delta.col) + indexToNumber(delta.row),
         playerInfo: yourPlayerInfo,
       };
       // Decide whether we make a move or not.
@@ -613,7 +613,7 @@ module game {
           move.state.deadBoard = chosenDeadBoardProposal;
         }
       }
-      gameService.makeMove(move, myProposal);
+      gameService.makeMove(move, myProposal, chatDescription);
     }
   }
 

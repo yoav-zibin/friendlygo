@@ -30889,7 +30889,14 @@ $provide.value("$locale", {
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
 ;
-"use strict"; var emulatorServicesCompilationDate = "Wed Apr 12 07:24:12 EDT 2017";
+/**
+ * IMPORTANT: do not change anything in this file!
+ * These are are services that communicate between the game and the platform,
+ * and it cannot be changed.
+ */
+
+;
+"use strict"; var emulatorServicesCompilationDate = "Sun Apr 23 16:21:11 EDT 2017";
 
 ;
 var gamingPlatform;
@@ -30915,13 +30922,17 @@ var gamingPlatform;
             return new Date().getTime();
         }
         log_1.getCurrentTime = getCurrentTime;
+        function getMillisecondsFromStart() {
+            return getCurrentTime() - startTime;
+        }
+        log_1.getMillisecondsFromStart = getMillisecondsFromStart;
         function getLogEntry(args, logLevel, consoleFunc) {
-            var millisecondsFromStart = getCurrentTime() - startTime;
             // Note that if the first argument to console.log is a string,
             // then it's supposed to be a format string, see:
             // https://developer.mozilla.org/en-US/docs/Web/API/Console/log
             // However, the output looks better on chrome if I pass a string as the first argument,
             // and I hope then it doesn't break anything anywhere else...
+            var millisecondsFromStart = getMillisecondsFromStart();
             var secondsFromStart = millisecondsFromStart / 1000;
             var consoleArgs = ['', secondsFromStart, ' seconds:'].concat(args);
             consoleFunc.apply(console, consoleArgs);
@@ -30934,7 +30945,7 @@ var gamingPlatform;
             lastLogs.push(getLogEntry(args, logLevel, consoleFunc));
         }
         function getLogs() {
-            alwaysLog(logLaterFunctions.map(function (func) { return func(); }));
+            logLaterFunctions.map(function (func) { return alwaysLog(func()); });
             return lastLogs.concat(alwaysLogs);
         }
         log_1.getLogs = getLogs;
@@ -31070,9 +31081,6 @@ var gamingPlatform;
             if (move) {
                 checkMove(move);
             }
-            if (proposal && !proposal.chatDescription) {
-                throw new Error("You didn't set chatDescription in your proposal=" + angular.toJson(proposal, true));
-            }
         }
         function sendMessage(msg) {
             gamingPlatform.messageService.sendMessage(msg);
@@ -31082,10 +31090,13 @@ var gamingPlatform;
             iframe.contentWindow.postMessage(msg, "*");
         }
         var lastUpdateUiMessage = null;
-        function makeMove(move, proposal) {
+        function makeMove(move, proposal, chatDescription) {
+            if (!chatDescription) {
+                throw new Error("You didn't set chatDescription in makeMove!");
+            }
             checkMakeMove(lastUpdateUiMessage, move, proposal);
             // I'm sending the move even in local testing to make sure it's simple json (or postMessage will fail).
-            sendMessage({ move: move, proposal: proposal, lastMessage: { updateUI: lastUpdateUiMessage } });
+            sendMessage({ move: move, proposal: proposal, chatDescription: chatDescription, lastMessage: { updateUI: lastUpdateUiMessage } });
             lastUpdateUiMessage = null; // to make sure you don't call makeMove until you get the next updateUI.
         }
         gameService.makeMove = makeMove;
@@ -32488,22 +32499,22 @@ var game;
             return;
         }
         game.didMakeMove = true;
+        var delta = move.state.delta;
+        var isPass = delta.row == -1 && delta.col == -1;
+        var chatDescription = isPass ? "Pass" : indexToLetter(delta.col) + indexToNumber(delta.row);
         if (!game.proposals) {
-            gameService.makeMove(move, null);
+            gameService.makeMove(move, null, chatDescription);
         }
         else {
-            var delta_2 = move.state.delta;
-            var isPass = delta_2.row == -1 && delta_2.col == -1;
             var myProposal = {
                 data: {
-                    delta: delta_2,
+                    delta: delta,
                     deadBoard: move.state.deadBoard,
                 },
-                chatDescription: isPass ? "Pass" : indexToLetter(delta_2.col) + indexToNumber(delta_2.row),
                 playerInfo: game.yourPlayerInfo,
             };
             // Decide whether we make a move or not.
-            if (game.proposals[delta_2.row][delta_2.col] < game.currentUpdateUI.numberOfPlayersRequiredToMove - 1) {
+            if (game.proposals[delta.row][delta.col] < game.currentUpdateUI.numberOfPlayersRequiredToMove - 1) {
                 move = null;
             }
             else {
@@ -32532,7 +32543,7 @@ var game;
                     move.state.deadBoard = chosenDeadBoardProposal;
                 }
             }
-            gameService.makeMove(move, myProposal);
+            gameService.makeMove(move, myProposal, chatDescription);
         }
     }
     function isFirstMove() {
@@ -32601,8 +32612,8 @@ var game;
             return;
         }
         try {
-            var delta_3 = { row: rrow, col: ccol };
-            var move = gameLogic.createMove(game.board, game.passes, game.deadBoard, delta_3, game.turnIndex, game.posJustCapturedForKo);
+            var delta_2 = { row: rrow, col: ccol };
+            var move = gameLogic.createMove(game.board, game.passes, game.deadBoard, delta_2, game.turnIndex, game.posJustCapturedForKo);
             makeMove(move);
         }
         catch (e) {

@@ -580,22 +580,22 @@ var game;
             return;
         }
         game.didMakeMove = true;
+        var delta = move.state.delta;
+        var isPass = delta.row == -1 && delta.col == -1;
+        var chatDescription = isPass ? "Pass" : indexToLetter(delta.col) + indexToNumber(delta.row);
         if (!game.proposals) {
-            gameService.makeMove(move, null);
+            gameService.makeMove(move, null, chatDescription);
         }
         else {
-            var delta_2 = move.state.delta;
-            var isPass = delta_2.row == -1 && delta_2.col == -1;
             var myProposal = {
                 data: {
-                    delta: delta_2,
+                    delta: delta,
                     deadBoard: move.state.deadBoard,
                 },
-                chatDescription: isPass ? "Pass" : indexToLetter(delta_2.col) + indexToNumber(delta_2.row),
                 playerInfo: game.yourPlayerInfo,
             };
             // Decide whether we make a move or not.
-            if (game.proposals[delta_2.row][delta_2.col] < game.currentUpdateUI.numberOfPlayersRequiredToMove - 1) {
+            if (game.proposals[delta.row][delta.col] < game.currentUpdateUI.numberOfPlayersRequiredToMove - 1) {
                 move = null;
             }
             else {
@@ -624,7 +624,7 @@ var game;
                     move.state.deadBoard = chosenDeadBoardProposal;
                 }
             }
-            gameService.makeMove(move, myProposal);
+            gameService.makeMove(move, myProposal, chatDescription);
         }
     }
     function isFirstMove() {
@@ -693,8 +693,8 @@ var game;
             return;
         }
         try {
-            var delta_3 = { row: rrow, col: ccol };
-            var move = gameLogic.createMove(game.board, game.passes, game.deadBoard, delta_3, game.turnIndex, game.posJustCapturedForKo);
+            var delta_2 = { row: rrow, col: ccol };
+            var move = gameLogic.createMove(game.board, game.passes, game.deadBoard, delta_2, game.turnIndex, game.posJustCapturedForKo);
             makeMove(move);
         }
         catch (e) {
