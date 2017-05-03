@@ -503,7 +503,7 @@ var game;
             game.board = state.board;
             game.hasDim = true;
             game.dim = game.board.length;
-            game.boardBeforeMove = state.boardBeforeMove;
+            game.boardBeforeMove = state.boardBeforeMove ? state.boardBeforeMove : game.board; // in ancient games I didn't set boardBeforeMove.
             game.delta = state.delta;
             game.passes = state.passes;
             game.posJustCapturedForKo = state.posJustCapturedForKo;

@@ -509,7 +509,7 @@ module game {
       board = state.board;
       hasDim = true;
       dim = board.length;
-      boardBeforeMove = state.boardBeforeMove;
+      boardBeforeMove = state.boardBeforeMove ? state.boardBeforeMove : board; // in ancient games I didn't set boardBeforeMove.
       delta = state.delta;
       passes = state.passes;
       posJustCapturedForKo = state.posJustCapturedForKo;
