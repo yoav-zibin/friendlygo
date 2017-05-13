@@ -1,8 +1,10 @@
 interface SupportedLanguages {
-  en: string, iw: string,
-  pt: string, zh: string,
-  el: string, fr: string,
-  hi: string, es: string,
+  en: string,
+  iw: string,
+  pt: string,
+  zh: string,
+  fr: string,
+  es: string,
 };
 interface Score {
   white: number, black: number;
@@ -63,146 +65,118 @@ module game {
 
   function getTranslations(): Translations {
     return {
-      "MODAL_BUTTON_CLOSE": {
-        "en": "Close",
-        "iw": "סגור",
-        "pt": "Fechar",
-        "zh": "关闭",
-        "el": "Κλείσιμο",
-        "fr": "fermer",
-        "hi": "बंद करे",
-        "es": "Cerrar"
-      },
-      "MODAL_BODY_AGREE_WITH_DEAD": {
-        "en": "Your opponent marked all dead stones, which appear smaller and blinking.\nIf you agree, click Agree and the game will end.\nIf you disagree, click Continue playing and then make your move.\n",
-        "iw": "היריב שלך מסומן כל האבנים המתות, אשר מופיעות קטן מהבהבת.\nאם אתה מסכים, לחץ על סכם המשחק יסתיים.\nאם אינך מסכים, לחץ על המשך לשחק ואז לעשות את הצעד הבא שלך.\n",
-        "pt": "Seu oponente marcado todas as pedras mortas, que aparecem menor e piscando.\nSe você concordar, clique em Concordo e o jogo terminará.\nSe você não concordar, clique em Continuar a jogar e, em seguida, fazer a sua jogada.\n",
-        "zh": "你的对手标记都死了块石头，看起来更小和闪烁。\n如果您同意，请单击同意，游戏将结束。\n如果您不同意，请点击继续玩，然后让你的举动。\n",
-        "el": "Ο αντίπαλός σας επισημαίνονται όλα τα νεκρά πέτρες, οι οποίες εμφανίζονται μικρότερα και αναβοσβήνει.\nΕάν συμφωνείτε, κάντε κλικ στο κουμπί Αποδοχή και το παιχνίδι θα τελειώσει.\nΑν διαφωνείτε, κάντε κλικ στην επιλογή Συνέχεια παιχνιδιού και στη συνέχεια να κάνετε την κίνηση σας.\n",
-        "fr": "Votre adversaire a marqué toutes les pierres mortes, qui apparaissent plus petits et clignote.\nSi vous êtes d'accord, cliquez sur Accepter et le jeu se terminera.\nSi vous n'êtes pas d'accord, cliquez sur Continuer à jouer et ensuite faire votre déménagement.\n",
-        "hi": "अपने प्रतिद्वंद्वी को सभी मृत पत्थर है, जो छोटे और निमिष दिखाई चिह्नित।\nअगर आप सहमत हैं, सहमत क्लिक करें और खेल खत्म हो जाएगा।\nयदि आप असहमत हैं, खेल जारी रखने के लिए क्लिक करें और फिर अपनी चाल बनाओ।\n",
-        "es": "Su oponente marcó todas las piedras muertas, que aparecen más pequeño y parpadeando.\nSi está de acuerdo, haga clic en Aceptar y el juego terminará.\nSi no está de acuerdo, haga clic en Continuar de juego y luego hacer su movimiento.\n"
-      },
-      "MODAL_TITLE_AGREE_WITH_DEAD": {
-        "en": "Agree/disagree with dead stone selection",
-        "iw": "מסכים / לא מסכים עם בחירת אבן מתה",
-        "pt": "Concorda / discorda com a seleção de pedra morta",
-        "zh": "同意/死石头的选择不同意",
-        "el": "Συμφωνούν / διαφωνούν με νεκρούς επιλογή πέτρα",
-        "fr": "D'accord / pas d'accord avec la sélection de pierre morte",
-        "hi": "सहमत / मृत पत्थर चयन से असहमत",
-        "es": "De acuerdo / desacuerdo con la selección piedra muerta"
-      },
-      "MODAL_BODY_MARK_DEAD": {
-        "en": "Dead stones will appear smaller and blinking. When you're done, click Confirm.",
-        "iw": "אבני מלח תופענה קטנות מהבהב. כשתסיים, לחץ על אשר.",
-        "pt": "pedras mortas aparece menor e piscando. Quando estiver pronto, clique em Confirmar.",
-        "zh": "死者的石头会出现小和闪烁。当您完成后，点击确认。",
-        "el": "Νεκρά πέτρες θα εμφανιστεί μικρότερα και αναβοσβήνει. Όταν τελειώσετε, κάντε κλικ στο κουμπί Επιβεβαίωση.",
-        "fr": "pierres mortes apparaissent plus petites et clignote. Lorsque vous avez terminé, cliquez sur Confirmer.",
-        "hi": "मृत पत्थर छोटे और निमिष दिखाई देगा। जब आप कर रहे हैं, की पुष्टि करें।",
-        "es": "piedras muertas aparecen más pequeño y parpadeando. Cuando haya terminado, haga clic en Confirmar."
-      },
-      "MODAL_TITLE_MARK_DEAD": {
-        "en": "Mark the dead stones",
-        "iw": "סמן את האבנים מת",
-        "pt": "Marcar as pedras mortas",
-        "zh": "纪念死者的石头",
-        "el": "Επισημάνετε τα νεκρά πέτρες",
-        "fr": "Marquez les pierres mortes",
-        "hi": "मृत पत्थर मार्क",
-        "es": "Marcar las piedras muertas"
-      },
-      "OPPONENT_CHOOSE_BOARD_SIZE": {
-        "en": "Opponent is choosing the board size, and making the first move.",
-        "iw": "יריב הוא בחירת גודל הלוח, ועושה את הצעד הראשון.",
-        "pt": "Adversário é escolher o tamanho da placa e fazer o primeiro movimento.",
-        "zh": "对手是选择电路板尺寸，并使先机。",
-        "el": "Αντίπαλος είναι η επιλογή του μεγέθους του σκάφους, και να κάνει την πρώτη κίνηση.",
-        "fr": "Adversaire est de choisir la taille du conseil d'administration, et de faire le premier pas.",
-        "hi": "प्रतिद्वन्दी बोर्ड आकार का चयन किया जाता है, और पहला कदम बना रही है।",
-        "es": "Oponente es elegir el tamaño del tablero, y dar el primer paso."
-      },
-      "CHOOSE_BOARD_SIZE": {
-        "en": "Choose board size",
-        "iw": "בחר את גודל הלוח",
-        "pt": "Escolha do tamanho da placa",
-        "zh": "选择电路板尺寸",
-        "el": "Επιλέξτε το μέγεθος του σκάφους",
-        "fr": "Choisissez la taille du conseil",
-        "hi": "बोर्ड आकार चुनें",
-        "es": "Elija el tamaño del tablero"
-      },
-      "CONFIRM": {
-        "en": "CONFIRM",
-        "iw": "אשר",
-        "pt": "CONFIRMAR",
-        "zh": "确认",
-        "el": "ΕΠΙΒΕΒΑΙΏΝΩ",
-        "fr": "CONFIRMER",
-        "hi": "पुष्टि करें",
-        "es": "CONFIRMAR"
-      },
-      "PASS": {
-        "en": "PASS",
-        "iw": "עבור",
-        "pt": "passo",
-        "zh": "我通过移动",
-        "el": "Έχω περάσει την κίνηση",
-        "fr": "Je passe le déménagement",
-        "hi": "मैं इस कदम से पारित",
-        "es": "Paso el movimiento"
-      },
-      "END_GAME": {
-        "en": "END GAME",
-        "iw": "סיים משחק",
-        "pt": "termino",
-        "zh": "我结束比赛",
-        "el": "Έχω τελειώσει το παιχνίδι",
-        "fr": "Je finis le jeu",
-        "hi": "मैं खेल खत्म",
-        "es": "Termino el juego"
-      },
-      "SELECT_DEAD": {
-        "en": "Select dead",
-        "iw": "בחר מתים",
-        "pt": "Selecione mortos",
-        "zh": "选择死",
-        "el": "Επιλέξτε νεκρούς",
-        "fr": "Sélectionnez morts",
-        "hi": "मृत का चयन करें",
-        "es": "Seleccionar muertos"
-      },
-      "AGREE": {
-        "en": "Agree",
-        "iw": "לְהַסכִּים",
-        "pt": "concordar",
-        "zh": "同意",
-        "el": "Συμφωνώ",
-        "fr": "Se mettre d'accord",
-        "hi": "इस बात से सहमत",
-        "es": "De acuerdo"
-      },
-      "CONTINUE_PLAYING": {
-        "en": "Continue playing",
-        "iw": "המשך משחק",
-        "pt": "continuar a jogar",
-        "zh": "继续打",
-        "el": "συνεχίσετε να παίζετε",
-        "fr": "Continuez de jouer",
-        "hi": "खेल जारी",
-        "es": "Sigue jugando"
-      },
-      "GAME_OVER": {
-        "en": "Game over! Black: {{BLACK_SCORE}}, White: {{WHITE_SCORE}}",
-        "iw": "סוף המשחק! שחור: {{BLACK_SCORE}}, לבן: {{WHITE_SCORE}}",
-        "pt": "Fim de jogo! Preto: {{BLACK_SCORE}}, White: {{WHITE_SCORE}}",
-        "zh": "游戏结束！黑色：{{BLACK_SCORE}}，白{{WHITE_SCORE}}",
-        "el": "Τέλος παιχνιδιού! Μαύρο: {{BLACK_SCORE}}, Λευκά: {{WHITE_SCORE}}",
-        "fr": "Jeu terminé! Noir: {{BLACK_SCORE}}, Blanc: {{WHITE_SCORE}}",
-        "hi": "खेल खत्म! ब्लैक: {{BLACK_SCORE}}, व्हाइट: {{WHITE_SCORE}}",
-        "es": "¡Juego terminado! Negro: {{BLACK_SCORE}}, blanco: {{WHITE_SCORE}}"
-      }
+        "MODAL_BUTTON_CLOSE": {
+          "en": "Close",
+          "iw": "סגור",
+          "pt": "Fechar",
+          "zh": "关闭",
+          "fr": "fermer",
+          "es": "Cerrar"
+        },
+        "MODAL_BODY_AGREE_WITH_DEAD": {
+          "en": "Your opponent marked all dead stones, which appear smaller and blinking.\nIf you agree, click Agree and the game will end.\nIf you disagree, click Continue playing and then make your move.\n",
+          "iw": "היריב שלך מסומן כל האבנים המתות, אשר מופיעות קטן מהבהבת.\nאם אתה מסכים, לחץ על סכם המשחק יסתיים.\nאם אינך מסכים, לחץ על המשך לשחק ואז לעשות את הצעד הבא שלך.\n",
+          "pt": "Seu oponente marcado todas as pedras mortas, que aparecem menor e piscando.\nSe você concordar, clique em Concordo e o jogo terminará.\nSe você não concordar, clique em Continuar a jogar e, em seguida, fazer a sua jogada.\n",
+          "zh": "你的对手标记都死了块石头，看起来更小和闪烁。\n如果你同意，请单击同意，游戏将结束。\n如果你不同意，请点击继续玩，然后让你的举动。\n",
+          "fr": "Votre adversaire a marqué toutes les pierres mortes, qui apparaissent plus petits et clignote.\nSi vous êtes d'accord, cliquez sur Accepter et le jeu se terminera.\nSi vous n'êtes pas d'accord, cliquez sur Continuer à jouer et ensuite faire votre déménagement.\n",
+          "es": "Su oponente marcó todas las piedras muertas, que aparecen más pequeño y parpadeando.\nSi está de acuerdo, haga clic en Aceptar y el juego terminará.\nSi no está de acuerdo, haga clic en Continuar de juego y luego hacer su movimiento.\n"
+        },
+        "MODAL_TITLE_AGREE_WITH_DEAD": {
+          "en": "Agree/disagree with dead stone selection",
+          "iw": "מסכים / לא מסכים עם בחירת אבן מתה",
+          "pt": "Concorda / discorda com a seleção de pedra morta",
+          "zh": "同意/死石头的选择不同意",
+          "fr": "D'accord / pas d'accord avec la sélection de pierre morte",
+          "es": "De acuerdo / desacuerdo con la selección piedra muerta"
+        },
+        "MODAL_BODY_MARK_DEAD": {
+          "en": "Dead stones will appear smaller and blinking. When you're done, click Confirm.",
+          "iw": "אבני מלח תופענה קטנות מהבהב. כשתסיים, לחץ על אשר.",
+          "pt": "pedras mortas aparece menor e piscando. Quando estiver pronto, clique em Confirmar.",
+          "zh": "死者的石头会出现小和闪烁。当你完成后，点击确认。",
+          "fr": "pierres mortes apparaissent plus petites et clignote. Lorsque vous avez terminé, cliquez sur Confirmer.",
+          "es": "piedras muertas aparecen más pequeño y parpadeando. Cuando haya terminado, haga clic en Confirmar."
+        },
+        "MODAL_TITLE_MARK_DEAD": {
+          "en": "Mark the dead stones",
+          "iw": "סמן את האבנים מת",
+          "pt": "Marcar as pedras mortas",
+          "zh": "纪念死者的石头",
+          "fr": "Marquez les pierres mortes",
+          "es": "Marcar las piedras muertas"
+        },
+        "OPPONENT_CHOOSE_BOARD_SIZE": {
+          "en": "Opponent is choosing the board size, and making the first move.",
+          "iw": "יריב הוא בחירת גודל הלוח, ועושה את הצעד הראשון.",
+          "pt": "Adversário é escolher o tamanho da placa e fazer o primeiro movimento.",
+          "zh": "对手是选择电路板尺寸，并使先机。",
+          "fr": "Adversaire est de choisir la taille du conseil d'administration, et de faire le premier pas.",
+          "es": "Oponente es elegir el tamaño del tablero, y dar el primer paso."
+        },
+        "CHOOSE_BOARD_SIZE": {
+          "en": "Choose board size",
+          "iw": "בחר את גודל הלוח",
+          "pt": "Escolha do tamanho da placa",
+          "zh": "选择电路板尺寸",
+          "fr": "Choisissez la taille du conseil",
+          "es": "Elija el tamaño del tablero"
+        },
+        "CONFIRM": {
+          "en": "CONFIRM",
+          "iw": "אשר",
+          "pt": "CONFIRMAR",
+          "zh": "确认",
+          "fr": "CONFIRMER",
+          "es": "CONFIRMAR"
+        },
+        "PASS": {
+          "en": "PASS",
+          "iw": "עבור",
+          "pt": "passo",
+          "zh": "我通过移动",
+          "fr": "Je passe le déménagement",
+          "es": "Paso el movimiento"
+        },
+        "END_GAME": {
+          "en": "END GAME",
+          "iw": "סיים משחק",
+          "pt": "termino",
+          "zh": "我结束比赛",
+          "fr": "Je finis le jeu",
+          "es": "Termino el juego"
+        },
+        "SELECT_DEAD": {
+          "en": "Select dead",
+          "iw": "בחר מתים",
+          "pt": "Selecione mortos",
+          "zh": "选择死",
+          "fr": "Sélectionnez morts",
+          "es": "Seleccionar muertos"
+        },
+        "AGREE": {
+          "en": "Agree",
+          "iw": "לְהַסכִּים",
+          "pt": "concordar",
+          "zh": "同意",
+          "fr": "Se mettre d'accord",
+          "es": "De acuerdo"
+        },
+        "CONTINUE_PLAYING": {
+          "en": "Continue playing",
+          "iw": "המשך משחק",
+          "pt": "continuar a jogar",
+          "zh": "继续打",
+          "fr": "Continuez de jouer",
+          "es": "Sigue jugando"
+        },
+        "GAME_OVER": {
+          "en": "Game over! Black: {{BLACK_SCORE}}, White: {{WHITE_SCORE}}",
+          "iw": "סוף המשחק! שחור: {{BLACK_SCORE}}, לבן: {{WHITE_SCORE}}",
+          "pt": "Fim de jogo! Preto: {{BLACK_SCORE}}, White: {{WHITE_SCORE}}",
+          "zh": "游戏结束！黑色：{{BLACK_SCORE}}，白{{WHITE_SCORE}}",
+          "fr": "Jeu terminé! Noir: {{BLACK_SCORE}}, Blanc: {{WHITE_SCORE}}",
+          "es": "¡Juego terminado! Negro: {{BLACK_SCORE}}, blanco: {{WHITE_SCORE}}"
+        },
     };
   }
 
